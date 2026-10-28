@@ -183,19 +183,16 @@ func getTrack(version string) (int, error) {
 
 // DownloadLTS downloads the given Bazel LTS release (candidate) into the specified location and returns the absolute path.
 func (gcs *GCSRepo) DownloadLTS(version, destDir, destFile string, config config.Config) (string, error) {
-	baseVersion, rc, isCandidate := strings.Cut(version, "rc")
-	folder := "release"
+	baseVersion, folder := version, "release"
 	names := []string{version}
-	if isCandidate {
-		// Release candidates have historically been named X.Y.ZrcN, but may also be named X.Y.Z-rcN (semver).
-		// Since both are stored in X.Y.Z/rcN/, try the other spelling if the given one doesn't exist.
-		baseVersion = strings.TrimSuffix(baseVersion, "-")
-		folder = "rc" + rc
-		other := baseVersion + "-rc" + rc
-		if version == other {
-			other = baseVersion + "rc" + rc
-		}
-		names = append(names, other)
+	// Release candidates have historically been named X.Y.ZrcN, but may also be named X.Y.Z-rc.N (semver).
+	// Since both are stored in X.Y.Z/rcN/, try the other spelling if the given one doesn't exist.
+	if base, rc, ok := strings.Cut(version, "-rc."); ok {
+		baseVersion, folder = base, "rc"+rc
+		names = append(names, base+"rc"+rc)
+	} else if base, rc, ok := strings.Cut(version, "rc"); ok {
+		baseVersion, folder = base, "rc"+rc
+		names = append(names, base+"-rc."+rc)
 	}
 
 	var path string

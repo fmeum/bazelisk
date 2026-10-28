@@ -84,7 +84,7 @@ func TestResolvePatchVersion(t *testing.T) {
 }
 
 func TestResolveCandidateVersion(t *testing.T) {
-	for _, requestedVersion := range []string{"4.0.0rc1", "4.0.0-rc1", "4.0.0rc1-patch1", "4.0.0-rc1-patch1"} {
+	for _, requestedVersion := range []string{"4.0.0rc1", "4.0.0-rc.1", "4.0.0rc1-patch1", "4.0.0-rc.1-patch1"} {
 		t.Run(requestedVersion, func(t *testing.T) {
 			s := setUp(t)
 			s.Finish()
@@ -110,11 +110,11 @@ func TestDownloadCandidateVersion_TriesBothSpellings(t *testing.T) {
 	}{
 		{
 			requestedVersion: "4.0.0rc1",
-			wantFilePrefixes: []string{"bazel-4.0.0rc1-", "bazel-4.0.0-rc1-"},
+			wantFilePrefixes: []string{"bazel-4.0.0rc1-", "bazel-4.0.0-rc.1-"},
 		},
 		{
-			requestedVersion: "4.0.0-rc1",
-			wantFilePrefixes: []string{"bazel-4.0.0-rc1-", "bazel-4.0.0rc1-"},
+			requestedVersion: "4.0.0-rc.1",
+			wantFilePrefixes: []string{"bazel-4.0.0-rc.1-", "bazel-4.0.0rc1-"},
 		},
 	}
 
