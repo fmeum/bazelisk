@@ -320,15 +320,15 @@ def determine_url(version, is_commit, bazel_filename):
         return BAZEL_GCS_PATH_PATTERN.format(platform=dirname, commit=version)
 
     # Split version into base version and optional additional identifier.
-    # Example: '0.19.1' -> ('0.19.1', None), '0.20.0rc1' -> ('0.20.0', 'rc1')
-    (version, rc) = re.match(r"(\d*\.\d*(?:\.\d*)?)(rc\d+)?", version).groups()
+    # Example: '0.19.1' -> ('0.19.1', None), '0.20.0rc1' -> ('0.20.0', 'rc1'), '0.20.0-rc1' -> ('0.20.0', '-rc1')
+    (version, rc) = re.match(r"(\d*\.\d*(?:\.\d*)?)(-?rc\d+)?", version).groups()
 
     bazelisk_base_url = get_env_or_config("BAZELISK_BASE_URL")
     if bazelisk_base_url is not None:
         return "{}/{}{}/{}".format(bazelisk_base_url, version, rc if rc else "", bazel_filename)
     else:
         return "https://releases.bazel.build/{}/{}/{}".format(
-            version, rc if rc else "release", bazel_filename
+            version, rc.lstrip("-") if rc else "release", bazel_filename
         )
 
 

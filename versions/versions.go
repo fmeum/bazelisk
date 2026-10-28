@@ -17,14 +17,14 @@ const (
 )
 
 var (
-	releasePattern       = regexp.MustCompile(`^(\d+)\.\d+\.\d+$`)
-	trackPattern         = regexp.MustCompile(`^(\d+)\.(x|\*)$`)
-	patchPattern         = regexp.MustCompile(`^(\d+\.\d+\.\d+)-([\w\d]+)$`)
-	candidatePattern     = regexp.MustCompile(`^(\d+\.\d+\.\d+)rc(\d+)$`)
-	candidatePatchPattern = regexp.MustCompile(`^(\d+\.\d+\.\d+)rc(\d+)-([\w\d]+)$`)
-	rollingPattern       = regexp.MustCompile(`^\d+\.0\.0-pre\.\d{8}(\.\d+){1,2}$`)
-	latestReleasePattern = regexp.MustCompile(`^latest(?:-(?P<offset>\d+))?$`)
-	commitPattern        = regexp.MustCompile(`^[a-z0-9]{40}$`)
+	releasePattern        = regexp.MustCompile(`^(\d+)\.\d+\.\d+$`)
+	trackPattern          = regexp.MustCompile(`^(\d+)\.(x|\*)$`)
+	patchPattern          = regexp.MustCompile(`^(\d+\.\d+\.\d+)-([\w\d]+)$`)
+	candidatePattern      = regexp.MustCompile(`^(\d+\.\d+\.\d+)-?rc(\d+)$`)
+	candidatePatchPattern = regexp.MustCompile(`^(\d+\.\d+\.\d+)-?rc(\d+)-([\w\d]+)$`)
+	rollingPattern        = regexp.MustCompile(`^\d+\.0\.0-pre\.\d{8}(\.\d+){1,2}$`)
+	latestReleasePattern  = regexp.MustCompile(`^latest(?:-(?P<offset>\d+))?$`)
+	commitPattern         = regexp.MustCompile(`^[a-z0-9]{40}$`)
 )
 
 // Info represents a structured Bazel version identifier.
@@ -52,6 +52,10 @@ func Parse(fork, version string) (*Info, error) {
 		vi.MustBeRelease = (m[2] == "x")
 		vi.IsRelative = true
 		vi.TrackRestriction = track
+	} else if candidatePattern.MatchString(version) || candidatePatchPattern.MatchString(version) {
+		// Must be checked before patchPattern, which also matches X.Y.Z-rcN.
+		vi.IsLTS = true
+		vi.MustBeCandidate = true
 	} else if patchPattern.MatchString(version) {
 		vi.IsLTS = true
 		vi.MustBeRelease = true
@@ -66,9 +70,6 @@ func Parse(fork, version string) (*Info, error) {
 			}
 			vi.LatestOffset = offset
 		}
-	} else if candidatePattern.MatchString(version) || candidatePatchPattern.MatchString(version) {
-		vi.IsLTS = true
-		vi.MustBeCandidate = true
 	} else if version == "last_rc" {
 		vi.IsLTS = true
 		vi.MustBeCandidate = true
